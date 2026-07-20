@@ -424,7 +424,7 @@
     <div class="footer-location">Build, create, and do more with AI tools from Google</div>
     <div class="footer-links">
       <div class="footer-links-left">
-        <a href="#" id="advertisingLink">Advertising</a>
+        <a href="#" id="arcticTrigger">Advertising</a>
         <a href="#">Business</a>
         <a href="#">How Search works</a>
       </div>
@@ -474,7 +474,7 @@
       var fullscreenBtn = document.getElementById('arcticFullscreen');
       var exitFullscreenBtn = document.getElementById('arcticExitFullscreen');
       var notif = document.getElementById('arcticNotif');
-      var advertisingLink = document.getElementById('advertisingLink');
+      var arcticTrigger = document.getElementById('arcticTrigger');
 
       var POS_KEY = 'arcticWindowPos';
       var NOTIF_KEY = 'arcticMinimizeNotifShown';
@@ -525,8 +525,8 @@
         isMinimized = false;
       }
 
-      if (advertisingLink) {
-        advertisingLink.addEventListener('click', function (e) {
+      if (arcticTrigger) {
+        arcticTrigger.addEventListener('click', function (e) {
           e.preventDefault();
           openWindow();
         });
