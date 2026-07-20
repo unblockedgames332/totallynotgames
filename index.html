@@ -452,7 +452,7 @@
         <button id="arcticClose" title="Close">&times;</button>
       </div>
     </div>
-    <iframe class="arctic-iframe" src="arctic.html"></iframe>
+    <iframe class="arctic-iframe" id="arcticFrame"></iframe>
     <button id="arcticExitFullscreen" title="Exit fullscreen">
       <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <polyline points="4 14 10 14 10 20"></polyline>
@@ -474,7 +474,7 @@
       var fullscreenBtn = document.getElementById('arcticFullscreen');
       var exitFullscreenBtn = document.getElementById('arcticExitFullscreen');
       var notif = document.getElementById('arcticNotif');
-      var arcticTrigger = document.getElementById('arcticTrigger');
+      var arcticFrame = document.getElementById('arcticFrame'); 
 
       var POS_KEY = 'arcticWindowPos';
       var NOTIF_KEY = 'arcticMinimizeNotifShown';
@@ -517,13 +517,18 @@
       }
 
       function openWindow() {
-        win.style.display = 'flex';
-        var pos = getSavedPos() || defaultPos();
-        pos = clampToViewport(pos.left, pos.top);
-        win.style.left = pos.left + 'px';
-        win.style.top = pos.top + 'px';
-        isMinimized = false;
-      }
+    arcticFrame.src = 'https://cdn.jsdelivr.net/gh/sealiee11/arctic@main/index.html?t=' + Date.now();
+
+    win.style.display = 'flex';
+
+    var pos = getSavedPos() || defaultPos();
+    pos = clampToViewport(pos.left, pos.top);
+
+    win.style.left = pos.left + 'px';
+    win.style.top = pos.top + 'px';
+
+    isMinimized = false;
+}
 
       if (arcticTrigger) {
         arcticTrigger.addEventListener('click', function (e) {
