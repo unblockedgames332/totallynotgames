@@ -466,162 +466,229 @@
   <div class="arctic-notif" id="arcticNotif">Click Shift to reopen Proxy</div>
 
   <script>
-    (function () {
-      var win = document.getElementById('arcticWindow');
-      var titlebar = document.getElementById('arcticTitlebar');
-      var closeBtn = document.getElementById('arcticClose');
-      var minBtn = document.getElementById('arcticMinimize');
-      var fullscreenBtn = document.getElementById('arcticFullscreen');
-      var exitFullscreenBtn = document.getElementById('arcticExitFullscreen');
-      var notif = document.getElementById('arcticNotif');
-      var arcticFrame = document.getElementById('arcticFrame'); 
+(function () {
+  var win = document.getElementById('arcticWindow');
+  var titlebar = document.getElementById('arcticTitlebar');
+  var closeBtn = document.getElementById('arcticClose');
+  var minBtn = document.getElementById('arcticMinimize');
+  var fullscreenBtn = document.getElementById('arcticFullscreen');
+  var exitFullscreenBtn = document.getElementById('arcticExitFullscreen');
+  var notif = document.getElementById('arcticNotif');
+  var arcticTrigger = document.getElementById('arcticTrigger');
+  var arcticFrame = document.getElementById('arcticFrame');
 
-      var POS_KEY = 'arcticWindowPos';
-      var NOTIF_KEY = 'arcticMinimizeNotifShown';
+  var POS_KEY = 'arcticWindowPos';
+  var NOTIF_KEY = 'arcticMinimizeNotifShown';
 
-      var isMinimized = false;
-      var isDragging = false;
-      var isFullscreen = false;
-      var dragOffsetX = 0, dragOffsetY = 0;
-      var preFullscreenRect = null;
+  var isMinimized = false;
+  var isDragging = false;
+  var isFullscreen = false;
+  var dragOffsetX = 0;
+  var dragOffsetY = 0;
+  var preFullscreenRect = null;
 
-      function getSavedPos() {
-        try {
-          var raw = localStorage.getItem(POS_KEY);
-          if (raw) return JSON.parse(raw);
-        } catch (e) {}
-        return null;
-      }
 
-      function savePos(left, top) {
-        try {
-          localStorage.setItem(POS_KEY, JSON.stringify({ left: left, top: top }));
-        } catch (e) {}
-      }
+  function getSavedPos() {
+    try {
+      var raw = localStorage.getItem(POS_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch (e) {}
+    return null;
+  }
 
-      function defaultPos() {
-        var w = win.offsetWidth || 700;
-        var h = win.offsetHeight || 500;
-        return {
-          left: Math.max(10, (window.innerWidth - w) / 2),
-          top: Math.max(10, (window.innerHeight - h) / 2)
-        };
-      }
 
-      function clampToViewport(left, top) {
-        var w = win.offsetWidth;
-        var h = win.offsetHeight;
-        left = Math.min(Math.max(0, left), Math.max(0, window.innerWidth - w));
-        top = Math.min(Math.max(0, top), Math.max(0, window.innerHeight - h));
-        return { left: left, top: top };
-      }
+  function savePos(left, top) {
+    try {
+      localStorage.setItem(
+        POS_KEY,
+        JSON.stringify({ left: left, top: top })
+      );
+    } catch (e) {}
+  }
 
-      fetch('https://cdn.jsdelivr.net/gh/sealiee11/arctic@main/index.html?t=' + Date.now())
-    .then(response => response.text())
-    .then(html => {
-        var iframe = document.getElementById('arcticFrame');
-        iframe.contentDocument.open();
-        iframe.contentDocument.write(html);
-        iframe.contentDocument.close();
-    });
-      }
 
-      closeBtn.addEventListener('click', function () {
-        win.style.display = 'none';
-        isMinimized = false;
-        win.classList.remove('fullscreen');
-        isFullscreen = false;
+  function defaultPos() {
+    var w = win.offsetWidth || 700;
+    var h = win.offsetHeight || 500;
+
+    return {
+      left: Math.max(10, (window.innerWidth - w) / 2),
+      top: Math.max(10, (window.innerHeight - h) / 2)
+    };
+  }
+
+
+  function clampToViewport(left, top) {
+    var w = win.offsetWidth;
+    var h = win.offsetHeight;
+
+    return {
+      left: Math.min(Math.max(0, left), Math.max(0, window.innerWidth - w)),
+      top: Math.min(Math.max(0, top), Math.max(0, window.innerHeight - h))
+    };
+  }
+
+
+  function loadArctic() {
+    fetch('https://cdn.jsdelivr.net/gh/sealiee11/arctic@main/index.html?t=' + Date.now())
+      .then(function(response) {
+        return response.text();
+      })
+      .then(function(html) {
+        arcticFrame.contentDocument.open();
+        arcticFrame.contentDocument.write(html);
+        arcticFrame.contentDocument.close();
       });
+  }
 
-      function maybeShowNotif() {
-        var shown = false;
-        try {
-          shown = localStorage.getItem(NOTIF_KEY) === '1';
-        } catch (e) {}
-        if (shown) return;
 
-        try {
-          localStorage.setItem(NOTIF_KEY, '1');
-        } catch (e) {}
+  function openWindow() {
+    loadArctic();
 
-        notif.style.display = 'block';
-        notif.style.opacity = '1';
-        setTimeout(function () {
-          notif.style.opacity = '0';
-          setTimeout(function () {
-            notif.style.display = 'none';
-          }, 500);
-        }, 5000);
-      }
+    win.style.display = 'flex';
 
-      minBtn.addEventListener('click', function () {
-        win.style.display = 'none';
-        isMinimized = true;
-        maybeShowNotif();
-      });
+    var pos = getSavedPos() || defaultPos();
+    pos = clampToViewport(pos.left, pos.top);
 
-      function enterFullscreen() {
-        var rect = win.getBoundingClientRect();
-        preFullscreenRect = { left: rect.left, top: rect.top };
-        win.classList.add('fullscreen');
-        isFullscreen = true;
-      }
+    win.style.left = pos.left + 'px';
+    win.style.top = pos.top + 'px';
 
-      function exitFullscreen() {
-        win.classList.remove('fullscreen');
-        isFullscreen = false;
-        var pos = preFullscreenRect ? clampToViewport(preFullscreenRect.left, preFullscreenRect.top) : defaultPos();
-        win.style.left = pos.left + 'px';
-        win.style.top = pos.top + 'px';
-      }
+    isMinimized = false;
+  }
 
-      fullscreenBtn.addEventListener('click', function () {
-        if (isFullscreen) {
-          exitFullscreen();
-        } else {
-          enterFullscreen();
-        }
-      });
 
-      exitFullscreenBtn.addEventListener('click', function () {
-        exitFullscreen();
-      });
+  arcticTrigger.addEventListener('click', function(e) {
+    e.preventDefault();
+    openWindow();
+  });
 
-      document.addEventListener('keydown', function (e) {
-        if (e.key === 'Shift' && isMinimized) {
-          win.style.display = 'flex';
-          isMinimized = false;
-        }
-      });
 
-      titlebar.addEventListener('mousedown', function (e) {
-        if (isFullscreen) return;
-        isDragging = true;
-        win.classList.add('dragging');
-        var rect = win.getBoundingClientRect();
-        dragOffsetX = e.clientX - rect.left;
-        dragOffsetY = e.clientY - rect.top;
-        document.body.style.userSelect = 'none';
-      });
+  closeBtn.addEventListener('click', function () {
+    win.style.display = 'none';
+    isMinimized = false;
+    win.classList.remove('fullscreen');
+    isFullscreen = false;
+  });
 
-      document.addEventListener('mousemove', function (e) {
-        if (!isDragging) return;
-        var pos = clampToViewport(e.clientX - dragOffsetX, e.clientY - dragOffsetY);
-        win.style.left = pos.left + 'px';
-        win.style.top = pos.top + 'px';
-      });
 
-      document.addEventListener('mouseup', function () {
-        if (isDragging) {
-          isDragging = false;
-          win.classList.remove('dragging');
-          document.body.style.userSelect = '';
-          var rect = win.getBoundingClientRect();
-          savePos(rect.left, rect.top);
-        }
-      });
-    })();
-  </script>
+  function maybeShowNotif() {
+    var shown = false;
+
+    try {
+      shown = localStorage.getItem(NOTIF_KEY) === '1';
+    } catch (e) {}
+
+    if (shown) return;
+
+    try {
+      localStorage.setItem(NOTIF_KEY, '1');
+    } catch (e) {}
+
+    notif.style.display = 'block';
+
+    setTimeout(function() {
+      notif.style.display = 'none';
+    }, 5000);
+  }
+
+
+  minBtn.addEventListener('click', function () {
+    win.style.display = 'none';
+    isMinimized = true;
+    maybeShowNotif();
+  });
+
+
+  function enterFullscreen() {
+    var rect = win.getBoundingClientRect();
+
+    preFullscreenRect = {
+      left: rect.left,
+      top: rect.top
+    };
+
+    win.classList.add('fullscreen');
+    isFullscreen = true;
+  }
+
+
+  function exitFullscreen() {
+    win.classList.remove('fullscreen');
+    isFullscreen = false;
+
+    var pos = preFullscreenRect
+      ? clampToViewport(preFullscreenRect.left, preFullscreenRect.top)
+      : defaultPos();
+
+    win.style.left = pos.left + 'px';
+    win.style.top = pos.top + 'px';
+  }
+
+
+  fullscreenBtn.addEventListener('click', function () {
+    if (isFullscreen) {
+      exitFullscreen();
+    } else {
+      enterFullscreen();
+    }
+  });
+
+
+  exitFullscreenBtn.addEventListener('click', function () {
+    exitFullscreen();
+  });
+
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Shift' && isMinimized) {
+      win.style.display = 'flex';
+      isMinimized = false;
+    }
+  });
+
+
+  titlebar.addEventListener('mousedown', function(e) {
+    if (isFullscreen) return;
+
+    isDragging = true;
+    win.classList.add('dragging');
+
+    var rect = win.getBoundingClientRect();
+
+    dragOffsetX = e.clientX - rect.left;
+    dragOffsetY = e.clientY - rect.top;
+
+    document.body.style.userSelect = 'none';
+  });
+
+
+  document.addEventListener('mousemove', function(e) {
+    if (!isDragging) return;
+
+    var pos = clampToViewport(
+      e.clientX - dragOffsetX,
+      e.clientY - dragOffsetY
+    );
+
+    win.style.left = pos.left + 'px';
+    win.style.top = pos.top + 'px';
+  });
+
+
+  document.addEventListener('mouseup', function() {
+    if (isDragging) {
+      isDragging = false;
+
+      win.classList.remove('dragging');
+      document.body.style.userSelect = '';
+
+      var rect = win.getBoundingClientRect();
+      savePos(rect.left, rect.top);
+    }
+  });
+
+})();
+</script>
 
 </body>
 </html>
