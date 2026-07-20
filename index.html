@@ -516,25 +516,14 @@
         return { left: left, top: top };
       }
 
-      function openWindow() {
-    arcticFrame.src = 'https://cdn.jsdelivr.net/gh/sealiee11/arctic@main/index.html?t=' + Date.now();
-
-    win.style.display = 'flex';
-
-    var pos = getSavedPos() || defaultPos();
-    pos = clampToViewport(pos.left, pos.top);
-
-    win.style.left = pos.left + 'px';
-    win.style.top = pos.top + 'px';
-
-    isMinimized = false;
-}
-
-      if (arcticTrigger) {
-        arcticTrigger.addEventListener('click', function (e) {
-          e.preventDefault();
-          openWindow();
-        });
+      fetch('https://cdn.jsdelivr.net/gh/sealiee11/arctic@main/index.html?t=' + Date.now())
+    .then(response => response.text())
+    .then(html => {
+        var iframe = document.getElementById('arcticFrame');
+        iframe.contentDocument.open();
+        iframe.contentDocument.write(html);
+        iframe.contentDocument.close();
+    });
       }
 
       closeBtn.addEventListener('click', function () {
